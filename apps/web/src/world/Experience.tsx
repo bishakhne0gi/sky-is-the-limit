@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { setLiveAltitude } from '@/flight/altitude';
+import { FlightSystem } from '@/flight/FlightSystem';
 import { safeLocalStorage } from '@/lib/env';
 import { loadProfile } from '@/profile/profile';
 import { useApp } from '@/state/store';
@@ -12,6 +13,9 @@ import { CloudSea } from './clouds/CloudSea';
 import { Effects } from './Effects';
 import { Lights } from './Lights';
 import { PaletteDriver } from './PaletteDriver';
+import { BreathRing } from './planes/BreathRing';
+import { PlayerPlane } from './planes/PlayerPlane';
+import { Rooftop } from './ground/Rooftop';
 import { SkyDome } from './sky/SkyDome';
 
 /** Dev-only: /fly?alt=2.45 starts at that lifetime altitude. */
@@ -28,6 +32,9 @@ export default function Experience() {
     if (dev !== null) { p.lifetimeAlt = dev; p.loop = Math.floor(dev); }
     useApp.getState().hydrate(p);
     setLiveAltitude(dev ?? Math.floor(p.lifetimeAlt));
+    if (process.env.NODE_ENV !== 'production' && new URLSearchParams(window.location.search).has('skip')) {
+      useApp.getState().release('hope', useApp.getState().fold);
+    }
   }, []);
 
   return (
@@ -39,11 +46,15 @@ export default function Experience() {
         onCreated={({ gl }) => { gl.toneMapping = THREE.NoToneMapping; }}
         style={{ touchAction: 'none' }}
       >
+        <FlightSystem />
         <PaletteDriver />
         <CameraRig />
         <Lights />
         <SkyDome />
         <CloudSea />
+        <Rooftop />
+        <PlayerPlane />
+        <BreathRing />
         <AdaptiveQuality />
         <Effects />
       </Canvas>
