@@ -1,0 +1,11 @@
+{
+  "name": "sky-is-the-limit",
+  "private": true,
+  "packageManager": "pnpm@10.28.1",
+  "scripts": {
+    "dev": "pnpm --filter @sitl/web dev",
+    "build": "pnpm --filter @sitl/web build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  }
+}
