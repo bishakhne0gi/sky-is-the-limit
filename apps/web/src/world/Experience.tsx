@@ -2,6 +2,8 @@
 import { Canvas } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
+import { AudioDriver } from '@/audio/AudioDriver';
+import { getEngine } from '@/audio/engine';
 import { setLiveAltitude } from '@/flight/altitude';
 import { live } from '@/flight/live';
 import { EchoPlanes } from '@/echoes/EchoPlanes';
@@ -67,6 +69,7 @@ export default function Experience() {
         <Birds />
         <Lanterns />
         <ShootingStars />
+        <AudioDriver />
         <Rooftop />
         <PlayerPlane />
         <EchoPlanes />
@@ -74,7 +77,7 @@ export default function Experience() {
         <AdaptiveQuality />
         <Effects />
       </Canvas>
-      <Overlay />
+      <Overlay onRelease={() => getEngine().start()} />
     </div>
   );
 }
