@@ -9,6 +9,7 @@ import { FlightSystem } from '@/flight/FlightSystem';
 import { safeLocalStorage } from '@/lib/env';
 import { loadProfile } from '@/profile/profile';
 import { useApp } from '@/state/store';
+import { Overlay } from '@/ui/Overlay';
 import { AdaptiveQuality } from './AdaptiveQuality';
 import { CameraRig } from './CameraRig';
 import { CloudSea } from './clouds/CloudSea';
@@ -42,9 +43,6 @@ export default function Experience() {
     if (dev !== null) { p.lifetimeAlt = dev; p.loop = Math.floor(dev); }
     useApp.getState().hydrate(p);
     setLiveAltitude(dev ?? Math.floor(p.lifetimeAlt));
-    if (process.env.NODE_ENV !== 'production' && new URLSearchParams(window.location.search).has('skip')) {
-      useApp.getState().release('hope', useApp.getState().fold);
-    }
   }, []);
 
   return (
@@ -76,6 +74,7 @@ export default function Experience() {
         <AdaptiveQuality />
         <Effects />
       </Canvas>
+      <Overlay />
     </div>
   );
 }
