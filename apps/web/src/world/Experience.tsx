@@ -18,6 +18,13 @@ import { PaletteDriver } from './PaletteDriver';
 import { BreathRing } from './planes/BreathRing';
 import { PlayerPlane } from './planes/PlayerPlane';
 import { Rooftop } from './ground/Rooftop';
+import { City } from './ground/City';
+import { Rain } from './ground/Rain';
+import { Birds } from './elements/Birds';
+import { Lanterns } from './elements/Lanterns';
+import { ShootingStars } from './elements/ShootingStars';
+import { Whales } from './elements/Whales';
+import { Words } from './elements/Words';
 import { SkyDome } from './sky/SkyDome';
 
 /** Dev-only: /fly?alt=2.45 starts at that lifetime altitude. */
@@ -55,6 +62,13 @@ export default function Experience() {
         <Lights />
         <SkyDome />
         <CloudSea />
+        <City />
+        <Rain />
+        <Whales />
+        <Words />
+        <Birds />
+        <Lanterns />
+        <ShootingStars />
         <Rooftop />
         <PlayerPlane />
         <EchoPlanes />
