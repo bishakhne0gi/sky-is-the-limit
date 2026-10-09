@@ -20,6 +20,6 @@ export function AudioDriver() {
       engine.suspend();
     };
   }, []);
-  useFrame((state) => getEngine().update(live.padKey, live.speed, useApp.getState().settings.muted, state.clock.elapsedTime));
+  useFrame((state) => getEngine().update(live.skyWeight, live.speed, useApp.getState().settings.muted, state.clock.elapsedTime));
   return null;
 }

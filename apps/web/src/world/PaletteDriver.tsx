@@ -20,7 +20,6 @@ export function PaletteDriver() {
     const p = mixPalette(ROOFTOP, current.current, live.skyWeight);
     const inside = insideDeck(live.camera.y);
     applyPalette({ ...p, fogNear: p.fogNear + (15 - p.fogNear) * inside, fogFar: p.fogFar + (260 - p.fogFar) * inside });
-    live.padKey = live.skyWeight < 0.5 ? 'rooftop' : time;
   }, -1);
   return null;
 }

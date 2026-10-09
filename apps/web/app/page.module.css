@@ -9,3 +9,5 @@
   background: var(--active-bg); font: 500 13px/1 var(--font-sans); letter-spacing: .24em; text-transform: uppercase;
   box-shadow: 0 8px 30px rgba(0,0,0,.15);
 }
+.credit { position: fixed; left: 0; right: 0; bottom: max(16px, env(safe-area-inset-bottom)); font: 400 11px/1 var(--font-sans); letter-spacing: .08em; color: rgba(255,255,255,.55); }
+.credit a { color: inherit; }

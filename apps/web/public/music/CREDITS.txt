@@ -1,0 +1,11 @@
+Music in this folder — all CC0 1.0 Universal (public domain dedication).
+https://creativecommons.org/publicdomain/zero/1.0/
+
+The author asks for this attribution (not legally required under CC0):
+  The Cynic Project / cynicmusic.com / pixelsphere.org
+
+calm-ambient-1.mp3  "Calm Ambient 1 (Synthwave 4k)"   https://opengameart.org/content/calm-ambient-1-synthwave-4k
+calm-relax-1.mp3    "Calm Relax 1 (Synthwave 421k)"   https://opengameart.org/content/calm-relax-1-synthwave-421k
+calm-ambient-3.mp3  "Calm Ambient 3 (Lifewave 2k)"    https://opengameart.org/content/calm-ambient-3-lifewave-2k
+
+Files were loudness-normalised (EBU R128, -20 LUFS) and re-encoded to VBR MP3 for the web.

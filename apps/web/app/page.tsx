@@ -7,6 +7,9 @@ export default function Home() {
       <h1 className={styles.title}>Sky is the limit</h1>
       <p className={styles.lede}>Fold what you carry into a paper plane. Breathe it upward with strangers. There is no top — only higher.</p>
       <Link href="/fly" className={styles.begin}>Begin</Link>
+      <p className={styles.credit}>
+        Music by <a href="https://cynicmusic.com" target="_blank" rel="noreferrer">The Cynic Project</a> · CC0
+      </p>
     </main>
   );
 }
