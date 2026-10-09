@@ -3,6 +3,8 @@ import { Canvas } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { setLiveAltitude } from '@/flight/altitude';
+import { live } from '@/flight/live';
+import { EchoPlanes } from '@/echoes/EchoPlanes';
 import { FlightSystem } from '@/flight/FlightSystem';
 import { safeLocalStorage } from '@/lib/env';
 import { loadProfile } from '@/profile/profile';
@@ -27,6 +29,7 @@ function devAltitude(): number | null {
 
 export default function Experience() {
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') Object.assign(window, { __sitl: { live, app: useApp } });
     const p = loadProfile(safeLocalStorage());
     const dev = devAltitude();
     if (dev !== null) { p.lifetimeAlt = dev; p.loop = Math.floor(dev); }
@@ -54,6 +57,7 @@ export default function Experience() {
         <CloudSea />
         <Rooftop />
         <PlayerPlane />
+        <EchoPlanes />
         <BreathRing />
         <AdaptiveQuality />
         <Effects />
