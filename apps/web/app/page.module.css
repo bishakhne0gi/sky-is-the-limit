@@ -1,0 +1,11 @@
+.main {
+  min-height: 100dvh; display: grid; place-content: center; gap: 22px; text-align: center; padding: 16px;
+  background: radial-gradient(120% 90% at 50% 100%, #ffc7a3 0%, #c398c4 38%, #34488a 75%, #0b1020 100%);
+}
+.title { font: italic 400 clamp(56px, 11vw, 168px)/0.92 var(--font-serif), serif; letter-spacing: -0.02em; text-shadow: 0 0 60px rgba(255,255,255,.45); }
+.lede { max-width: 34ch; margin: 0 auto; font-size: 15px; line-height: 1.6; color: var(--ink-dim); }
+.begin {
+  justify-self: center; padding: 12px 28px; border-radius: 999px; text-decoration: none; color: var(--active-ink);
+  background: var(--active-bg); font: 500 13px/1 var(--font-sans); letter-spacing: .24em; text-transform: uppercase;
+  box-shadow: 0 8px 30px rgba(0,0,0,.15);
+}

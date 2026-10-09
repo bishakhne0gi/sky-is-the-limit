@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sky Is The Limit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --glass: rgba(255,255,255,.16);
+    --glass-border: rgba(255,255,255,.34);
+    --ink: rgba(255,255,255,.92);
+    --ink-dim: rgba(255,255,255,.62);
+    --active-bg: rgba(255,255,255,.92);
+    --active-ink: #1d2433;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #0b1020; }
+  body { font-family: Inter, system-ui, sans-serif; color: var(--ink); cursor: none; -webkit-font-smoothing: antialiased; user-select: none; }
+  canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+
+  .vignette { position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(5,8,20,.38) 100%); }
+  .grain { position: fixed; inset: -50%; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    animation: grain 1s steps(6) infinite; }
+  @keyframes grain { 0%{transform:translate(0,0)} 20%{transform:translate(-3%,2%)} 40%{transform:translate(2%,-3%)} 60%{transform:translate(-2%,-1%)} 80%{transform:translate(3%,3%)} 100%{transform:translate(0,0)} }
+
+  .pills { position: fixed; top: max(18px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+    display: flex; gap: 2px; padding: 4px; border-radius: 999px; background: var(--glass);
+    border: 1px solid var(--glass-border); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%);
+    box-shadow: 0 8px 30px rgba(0,0,0,.12); z-index: 5; max-width: calc(100vw - 32px); }
+  .pill { appearance: none; border: 0; background: transparent; color: var(--ink-dim); font: 500 13px/1 Inter, sans-serif;
+    display: flex; align-items: center; gap: 7px; padding: 9px 14px; border-radius: 999px; cursor: none;
+    transition: background .35s, color .35s, transform .2s; white-space: nowrap; }
+  .pill svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  .pill:hover { color: var(--ink); }
+  .pill.active { background: var(--active-bg); color: var(--active-ink); box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+  .pill:active { transform: scale(.96); }
+
+  .hud { position: fixed; left: max(22px, env(safe-area-inset-left)); bottom: max(20px, env(safe-area-inset-bottom)); z-index: 5;
+    font: 500 11px/1.4 Inter, sans-serif; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-dim); text-shadow: 0 1px 12px rgba(0,0,0,.25); }
+  .hud b { display: block; font: 400 34px/1 "Instrument Serif", serif; letter-spacing: 0; text-transform: none; color: var(--ink); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .hud b i { font-size: 18px; color: var(--ink-dim); margin-left: 4px; }
+
+  .hint { position: fixed; right: max(22px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); z-index: 5;
+    display: flex; gap: 10px; align-items: center; font: 500 11px/1 Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-dim); text-shadow: 0 1px 12px rgba(0,0,0,.25); }
+  .hint button { appearance: none; cursor: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--ink);
+    background: var(--glass); border: 1px solid var(--glass-border); padding: 8px 12px; border-radius: 999px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+  .intro { position: fixed; inset: 0; z-index: 8; display: grid; place-items: center; text-align: center; padding: 16px;
+    transition: opacity 1.6s ease, filter 1.6s ease; }
+  .intro.gone { opacity: 0; filter: blur(14px); pointer-events: none; }
+  .intro h1 { font: italic 400 clamp(56px, 11vw, 168px)/.92 "Instrument Serif", serif; letter-spacing: -.02em; color: #fff;
+    text-shadow: 0 0 60px rgba(255,255,255,.45), 0 2px 30px rgba(0,0,0,.15); }
+  .intro p { margin-top: 22px; font: 500 12px/1 Inter, sans-serif; letter-spacing: .32em; text-transform: uppercase; color: rgba(255,255,255,.8); animation: breathe 2.4s ease-in-out infinite; }
+  @keyframes breathe { 50% { opacity: .35; } }
+
+  .cursor { position: fixed; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; z-index: 10; pointer-events: none;
+    border: 1.5px solid rgba(255,255,255,.85); box-shadow: 0 0 18px rgba(255,255,255,.35); transition: width .25s, height .25s, margin .25s, background .25s; }
+  .cursor::after { content: ""; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: #fff; }
+  .cursor.down { width: 54px; height: 54px; margin: -27px 0 0 -27px; background: rgba(255,255,255,.12); }
+
+  @media (max-width: 560px) {
+    .pill span { display: none; }
+    .pill { padding: 10px 12px; }
+    .hint .txt { display: none; }
+    .hud b { font-size: 26px; }
+  }
+  @media (hover: none) { body, .pill, .hint button { cursor: auto; } .cursor { display: none; } }
+</style>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="vignette"></div>
+<div class="grain"></div>
+
+<nav class="pills" id="pills">
+  <button class="pill" data-mode="dawn"><svg viewBox="0 0 24 24"><path d="M12 3v3M4.9 8.9l1.4 1.4M19.1 8.9l-1.4 1.4M3 16h18M7 16a5 5 0 0 1 10 0M8 20h8"/></svg><span>Dawn</span></button>
+  <button class="pill" data-mode="day"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Day</span></button>
+  <button class="pill" data-mode="dusk"><svg viewBox="0 0 24 24"><path d="M12 10V3M8.5 6.5 12 10l3.5-3.5M3 16h18M7 16a5 5 0 0 1 10 0M8 20h8"/></svg><span>Dusk</span></button>
+  <button class="pill" data-mode="night"><svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Night</span></button>
+  <button class="pill active" data-mode="auto"><svg viewBox="0 0 24 24"><path d="M12 12c-2-2.7-3.6-4-5.5-4a4 4 0 0 0 0 8c1.9 0 3.5-1.3 5.5-4zm0 0c2 2.7 3.6 4 5.5 4a4 4 0 0 0 0-8c-1.9 0-3.5 1.3-5.5 4z"/></svg><span>Endless</span></button>
+</nav>
+
+<div class="hud">Altitude<b id="alt">30,000<i>ft</i></b></div>
+<div class="hint"><span class="txt">Move to steer · Hold to soar</span><button id="snd">Sound off</button></div>
+
+<div class="intro" id="intro">
+  <div><h1>Sky is the limit</h1><p>Click anywhere to take off</p></div>
+</div>
+<div class="cursor" id="cursor"></div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+// ---------------------------------------------------------------- setup
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+const PR = Math.min(window.devicePixelRatio, 1.5);
+renderer.setPixelRatio(PR);
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(62, innerWidth / innerHeight, 0.1, 3000);
+
+const composer = new EffectComposer(renderer);
+composer.setPixelRatio(PR);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.5, 0.75, 0.95);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+// world wrap dimensions: everything lives on an endless torus that slides past the camera
+const W = 640, L = 760, AHEAD = 30;
+const wrap = (v, m) => ((v % m) + m) % m;
+
+// ---------------------------------------------------------------- palettes
+const PRESETS = {
+  dawn:  { top:'#34488a', mid:'#c398c4', horizon:'#ffc7a3', sun:'#ffcf9e', lit:'#ffe3cf', shadow:'#8679a6', fog:'#f0c1b6', stars:.15, aurora:0,  lanterns:.25, birds:1, exposure:1.0,  el:5,  az:-18 },
+  day:   { top:'#1f5fc4', mid:'#5a9be6', horizon:'#c3defc', sun:'#fff3dc', lit:'#ffffff', shadow:'#7593c2', fog:'#b9d4f2', stars:0,   aurora:0,  lanterns:0,   birds:1, exposure:.82, el:24, az:14 },
+  dusk:  { top:'#21184a', mid:'#a8417c', horizon:'#ff9658', sun:'#ff8738', lit:'#ffb286', shadow:'#5a3a6c', fog:'#dc7c78', stars:.35, aurora:0,  lanterns:.85, birds:1, exposure:1.05, el:3,  az:8 },
+  night: { top:'#02050f', mid:'#081433', horizon:'#1b2c58', sun:'#c9d8ff', lit:'#5d73a8', shadow:'#0b1430', fog:'#121d40', stars:1,   aurora:1,  lanterns:1,   birds:0, exposure:.9, el:20, az:22 },
+};
+const ORDER = ['dawn', 'day', 'dusk', 'night'];
+const COLOR_KEYS = ['top','mid','horizon','sun','lit','shadow','fog'];
+const NUM_KEYS = ['stars','aurora','lanterns','birds','exposure','el','az'];
+const S = {}; // live, lerped state
+for (const k of COLOR_KEYS) S[k] = new THREE.Color(PRESETS.dawn[k]);
+for (const k of NUM_KEYS) S[k] = PRESETS.dawn[k];
+const target = {};
+const setTarget = name => { for (const k of COLOR_KEYS) target[k] = new THREE.Color(PRESETS[name][k]); for (const k of NUM_KEYS) target[k] = PRESETS[name][k]; };
+setTarget('dawn');
+const sunDir = new THREE.Vector3();
+const below = new THREE.Color(), tint = new THREE.Color(), cirrus = new THREE.Color(), birdCol = new THREE.Color();
+
+// ---------------------------------------------------------------- shared GLSL
+const NOISE = /* glsl */`
+  float hash(vec2 p){ p = fract(p*vec2(123.34,456.21)); p += dot(p,p+45.32); return fract(p.x*p.y); }
+  float noise(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.-2.*f);
+    return mix(mix(hash(i),hash(i+vec2(1,0)),f.x), mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x), f.y); }
+  float fbm(vec2 p){ float v=0., a=.5; for(int i=0;i<4;i++){ v+=a*noise(p); p=p*2.03+17.1; a*=.5; } return v; }
+  float fbm3(vec2 p){ float v=0., a=.5; for(int i=0;i<3;i++){ v+=a*noise(p); p=p*2.07+11.3; a*=.5; } return v; }
+`;
+
+// ---------------------------------------------------------------- sky dome
+const skyU = {
+  uTop:{value:S.top}, uMid:{value:S.mid}, uHorizon:{value:S.horizon}, uSunCol:{value:S.sun}, uBelow:{value:below},
+  uCirrus:{value:cirrus}, uSunDir:{value:sunDir}, uStars:{value:0}, uAurora:{value:0}, uTime:{value:0}, uCamZ:{value:0},
+};
+const sky = new THREE.Mesh(new THREE.SphereGeometry(1500, 48, 32), new THREE.ShaderMaterial({
+  uniforms: skyU, side: THREE.BackSide, depthWrite: false,
+  vertexShader: `varying vec3 vDir; void main(){ vDir = position; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+  fragmentShader: NOISE + /* glsl */`
+    uniform vec3 uTop,uMid,uHorizon,uSunCol,uBelow,uCirrus,uSunDir; uniform float uStars,uAurora,uTime,uCamZ;
+    varying vec3 vDir;
+    void main(){
+      vec3 d = normalize(vDir); float h = d.y;
+      vec3 col = mix(uHorizon, uMid, smoothstep(0.0, 0.28, h));
+      col = mix(col, uTop, smoothstep(0.22, 0.9, h));
+      float s = max(dot(d, uSunDir), 0.0);
+      col += uSunCol * (pow(s,5.)*.22*(1.-uStars*.7) + pow(s,60.)*.55 + pow(s,2.)*(1.-smoothstep(0.,.3,abs(h)))*.2*(1.-uStars*.8));
+      // high cirrus, drifting with travel for a sense of speed
+      if (h > 0.0) {
+        vec2 cp = d.xz/(h+0.06)*0.55 + vec2(0., uCamZ*0.0007);
+        float ci = fbm(cp*vec2(.55,2.4) + vec2(uTime*.006, 0.));
+        ci = smoothstep(.55,.88,ci) * smoothstep(.02,.22,h) * smoothstep(.95,.35,h);
+        col = mix(col, uCirrus + uSunCol*pow(s,4.)*.6, ci*.55);
+      }
+      // stars
+      vec2 sp = vec2(atan(d.z,d.x), asin(clamp(h,-1.,1.))) * 130.;
+      vec2 cell = floor(sp), f = fract(sp) - .5;
+      float hs = hash(cell);
+      vec2 off = vec2(hash(cell+3.1), hash(cell+7.7)) - .5;
+      float star = smoothstep(.13, 0., length(f - off*.6)) * step(.935, hs);
+      star *= .55 + .45*sin(uTime*(1.5+hs*5.) + hs*40.);
+      col += vec3(.9,.95,1.) * star * uStars * smoothstep(.02,.25,h) * 1.8;
+      // aurora curtains
+      if (uAurora > 0.001) {
+        float az = atan(d.x, -d.z); vec3 aur = vec3(0);
+        for (int i=0;i<3;i++){ float fi = float(i);
+          float wave = noise(vec2(az*2.4 + fi*3.1 + uTime*.05, uTime*.03 + fi));
+          float c = .17 + fi*.075 + (wave-.5)*.2;
+          float band = exp(-pow((h-c)*16.,2.)) + exp(-max(h-c,0.)*15.)*smoothstep(c-.015,c,h)*.45;
+          float streak = .45 + .55*noise(vec2(az*70. + uTime*.4, fi*5.));
+          aur += mix(vec3(.12,1.,.62), vec3(.62,.3,1.), fi*.5) * band * streak * streak * .32;
+        }
+        col += aur * uAurora * smoothstep(0.,.08,h);
+      }
+      // sun / moon disc
+      col += uSunCol * smoothstep(.99935, .99965, s) * 7.;
+      col = mix(col, uBelow, smoothstep(0.0, -0.12, h));
+      gl_FragColor = vec4(col, 1.);
+    }`,
+}));
+sky.renderOrder = -10;
+scene.add(sky);
+
+// ---------------------------------------------------------------- cloud sea (CPU-wrapped + depth sorted instanced billboards)
+const puffs = [];
+{
+  const R = Math.random;
+  for (let c = 0; c < 240; c++) {
+    const cx = R()*W - W/2, cz = R()*L, tall = R() < .2 ? 14 + R()*18 : 3 + R()*7, base = -2 + R()*3;
+    const n = 6 + (R()*6|0);
+    for (let k = 0; k < n; k++) {
+      const t = R(), spread = (1 - t*.6) * (10 + R()*8);
+      puffs.push({ x: cx + (R()-.5)*spread*2, y: base + t*tall, z: cz + (R()-.5)*spread*1.6, s: (1 - t*.45)*(12 + R()*13), seed: R() });
+    }
+  }
+  for (let k = 0; k < 720; k++) puffs.push({ x: R()*W - W/2, y: -9 + R()*4, z: R()*L, s: 26 + R()*22, seed: R() });
+}
+const NP = puffs.length;
+const cloudGeo = new THREE.InstancedBufferGeometry();
+cloudGeo.copy(new THREE.PlaneGeometry(1, 1));
+cloudGeo.instanceCount = NP;
+const aPos = new THREE.InstancedBufferAttribute(new Float32Array(NP*3), 3).setUsage(THREE.DynamicDrawUsage);
+const aData = new THREE.InstancedBufferAttribute(new Float32Array(NP*4), 4).setUsage(THREE.DynamicDrawUsage);
+cloudGeo.setAttribute('aPos', aPos);
+cloudGeo.setAttribute('aData', aData);
+const cloudU = {
+  uTime:{value:0}, uPointer:{value:new THREE.Vector2()}, uAspect:{value:1}, uPart:{value:.9},
+  uLit:{value:S.lit}, uShadow:{value:S.shadow}, uSunCol:{value:S.sun}, uFog:{value:S.fog},
+  uSunScr:{value:new THREE.Vector2(0,1)}, uRim:{value:.6}, uFogNear:{value:120}, uFogFar:{value:700},
+};
+const clouds = new THREE.Mesh(cloudGeo, new THREE.ShaderMaterial({
+  uniforms: cloudU, transparent: true, depthWrite: false,
+  vertexShader: /* glsl */`
+    attribute vec3 aPos; attribute vec4 aData;
+    uniform vec2 uPointer; uniform float uAspect, uPart, uFogNear, uFogFar;
+    varying vec2 vUv; varying float vSeed, vFade, vFog, vH;
+    void main(){
+      vec4 mvC = viewMatrix * vec4(aPos, 1.);
+      vec4 cc = projectionMatrix * mvC;
+      vec2 dd = cc.xy/cc.w - uPointer; dd.x *= uAspect;
+      float l = length(dd);
+      float push = uPart * exp(-l*l/.055) * smoothstep(280., 12., -mvC.z);
+      vec4 mv = mvC; mv.xy += position.xy * aData.x * (1. - .45*push);
+      vec4 clip = projectionMatrix * mv;
+      vec2 dir = l > 1e-4 ? dd/l : vec2(0.,1.); dir.x /= uAspect;
+      clip.xy += dir * push * .3 * clip.w;
+      gl_Position = clip;
+      vUv = position.xy * 2.; vSeed = aData.y; vFade = aData.z; vH = aData.w;
+      vFog = smoothstep(uFogNear, uFogFar, -mvC.z);
+    }`,
+  fragmentShader: NOISE + /* glsl */`
+    uniform float uTime, uRim; uniform vec3 uLit, uShadow, uSunCol, uFog; uniform vec2 uSunScr;
+    varying vec2 vUv; varying float vSeed, vFade, vFog, vH;
+    void main(){
+      float n = fbm3(vUv*1.25 + vSeed*31.7 + vec2(uTime*.02, -uTime*.012));
+      float d = 1. - length(vUv) + (n - .5);
+      float a = smoothstep(.02, .5, d) * smoothstep(1., .72, length(vUv)) * vFade;
+      if (a < .004) discard;
+      float sa = dot(vUv, uSunScr);
+      float light = clamp(.5 + vUv.y*.32 + sa*.22 + (n-.5)*.55, 0., 1.) * mix(.6, 1., vH);
+      vec3 col = mix(uShadow, uLit, light);
+      col += uSunCol * (1. - smoothstep(.02, .3, d)) * max(sa, 0.) * uRim;
+      col = mix(col, uFog, vFog);
+      gl_FragColor = vec4(col, a*.92);
+    }`,
+}));
+clouds.frustumCulled = false;
+clouds.renderOrder = 1;
+scene.add(clouds);
+
+const relArr = new Float32Array(NP), wxArr = new Float32Array(NP);
+const order = new Uint32Array(NP).map((_, i) => i);
+function updateClouds(camX, camZ) {
+  for (let i = 0; i < NP; i++) {
+    const p = puffs[i];
+    relArr[i] = wrap(camZ - p.z, L);
+    wxArr[i] = camX + wrap(p.x - camX + W/2, W) - W/2;
+  }
+  order.sort((a, b) => relArr[b] - relArr[a]); // far → near for correct alpha blending
+  const P = aPos.array, D = aData.array;
+  for (let j = 0; j < NP; j++) {
+    const i = order[j], p = puffs[i], rel = relArr[i], ahead = rel - AHEAD;
+    const fade = THREE.MathUtils.smoothstep(ahead, 3, 22) * THREE.MathUtils.smoothstep(L - rel, 0, 140);
+    const xe = Math.abs(wxArr[i] - camX), edge = 1 - THREE.MathUtils.smoothstep(xe, W/2 - 90, W/2);
+    P[j*3] = wxArr[i]; P[j*3+1] = p.y; P[j*3+2] = camZ + AHEAD - rel;
+    D[j*4] = p.s; D[j*4+1] = p.seed; D[j*4+2] = fade * edge; D[j*4+3] = THREE.MathUtils.clamp((p.y + 9) / 30, 0, 1);
+  }
+  aPos.needsUpdate = aData.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- birds
+const FLOCKS = 7, PER = 7, NB = FLOCKS * PER;
+const flocks = Array.from({ length: FLOCKS }, () => ({ x: Math.random()*W - W/2, y: 16 + Math.random()*18, z: Math.random()*L, v: 9 + Math.random()*8 }));
+const birdGeo = new THREE.InstancedBufferGeometry();
+birdGeo.setAttribute('position', new THREE.Float32BufferAttribute([0,0,-.5, -1.25,0,.15, 0,0,.35,  0,0,-.5, 0,0,.35, 1.25,0,.15], 3));
+birdGeo.instanceCount = NB;
+const bPos = new THREE.InstancedBufferAttribute(new Float32Array(NB*4), 4).setUsage(THREE.DynamicDrawUsage);
+birdGeo.setAttribute('aPos', bPos);
+const birdU = { uTime:{value:0}, uBirds:{value:1}, uCol:{value:birdCol}, uFog:{value:S.fog} };
+const birds = new THREE.Mesh(birdGeo, new THREE.ShaderMaterial({
+  uniforms: birdU, transparent: true, side: THREE.DoubleSide,
+  vertexShader: `attribute vec4 aPos; uniform float uTime; varying float vFog, vFade;
+    void main(){ vec3 p = position*1.1; float ax = abs(p.x);
+      p.y += sin(uTime*9. + aPos.w*40.) * .75 * ax; p.z += ax*.15;
+      vec4 mv = viewMatrix * vec4(p + aPos.xyz, 1.);
+      vFog = smoothstep(80., 520., -mv.z); vFade = 1.;
+      gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `uniform vec3 uCol, uFog; uniform float uBirds; varying float vFog, vFade;
+    void main(){ gl_FragColor = vec4(mix(uCol, uFog, vFog), uBirds*vFade*(1.-vFog*.6)); }`,
+}));
+birds.frustumCulled = false;
+birds.renderOrder = 0;
+scene.add(birds);
+function updateBirds(camX, camZ, t) {
+  const A = bPos.array;
+  flocks.forEach((f, fi) => {
+    const bz = f.z - t*f.v, rel = wrap(camZ - bz, L), z = camZ + AHEAD - rel;
+    const x = camX + wrap(f.x - camX + W/2, W) - W/2;
+    for (let k = 0; k < PER; k++) {
+      const i = fi*PER + k, side = k % 2 ? 1 : -1, rank = (k + 1) >> 1;
+      A[i*4]   = x + side*rank*2.1 + Math.sin(t*.7 + i)*.3;
+      A[i*4+1] = f.y + Math.sin(t*.9 + i*1.7)*.4 - rank*.15 + Math.sin(t*.25 + fi)*2;
+      A[i*4+2] = (rel < AHEAD + 4 ? 1e5 : z + rank*2.4);
+      A[i*4+3] = i / NB;
+    }
+  });
+  bPos.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- sky lanterns (shader-wrapped points)
+const NL = 420;
+const lanGeo = new THREE.BufferGeometry();
+{
+  const base = new Float32Array(NL*3), seed = new Float32Array(NL);
+  for (let i = 0; i < NL; i++) { base[i*3] = Math.random()*W - W/2; base[i*3+1] = Math.random()*80; base[i*3+2] = Math.random()*L; seed[i] = Math.random(); }
+  lanGeo.setAttribute('position', new THREE.BufferAttribute(base, 3));
+  lanGeo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+}
+const lanU = { uTime:{value:0}, uCamX:{value:0}, uCamZ:{value:0}, uAmt:{value:0}, uPR:{value:PR * innerHeight / 900} };
+const lanterns = new THREE.Points(lanGeo, new THREE.ShaderMaterial({
+  uniforms: lanU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  vertexShader: /* glsl */`
+    attribute float aSeed; uniform float uTime, uCamX, uCamZ, uAmt, uPR; varying float vA, vF;
+    const float W = ${W}.0, L = ${L}.0;
+    void main(){
+      float rel = mod(uCamZ - position.z, L);
+      float z = uCamZ + ${AHEAD}.0 - rel;
+      float x = uCamX + mod(position.x - uCamX + W*.5, W) - W*.5 + sin(uTime*.3 + aSeed*20.)*2.;
+      float y = mod(position.y + uTime*(1.1 + aSeed*1.6), 80.) - 8.;
+      vec4 mv = viewMatrix * vec4(x, y, z, 1.);
+      gl_PointSize = 950. * uPR * (.7 + aSeed*.6) / max(-mv.z, 1.);
+      vA = uAmt * smoothstep(L, L-160., rel) * smoothstep(0., 14., rel - ${AHEAD}.0) * smoothstep(-8., -1., y) * smoothstep(72., 55., y);
+      vF = .8 + .2*sin(uTime*(9.+aSeed*8.) + aSeed*50.);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */`
+    varying float vA, vF;
+    void main(){
+      vec2 uv = gl_PointCoord - .5; uv.y = -uv.y;
+      vec2 q = abs(uv - vec2(0., .01)) - vec2(.038, .06);
+      float body = 1. - smoothstep(0., .015, length(max(q, 0.)) - .012);
+      float halo = exp(-dot(uv,uv)*30.);
+      vec3 col = vec3(1., .5, .16)*halo*1.1 + vec3(1., .82, .55)*body*2.6;
+      gl_FragColor = vec4(col * vF * vA, 1.);
+    }`,
+}));
+lanterns.frustumCulled = false;
+lanterns.renderOrder = 3;
+scene.add(lanterns);
+
+// ---------------------------------------------------------------- the words
+const WORDS = ['Sky', 'is the', 'limit'], WSPACE = 330, WL = WSPACE * WORDS.length;
+const words = [];
+const wordFrag = NOISE + /* glsl */`
+  uniform sampler2D uTex; uniform float uDist, uTime; uniform vec3 uTint, uSunCol; varying vec2 vUv;
+  void main(){
+    vec4 t = texture2D(uTex, vUv);
+    float n = fbm(vUv*vec2(9., 2.6) + vec2(uTime*.12, 0.)) * 1.12;
+    float dis = smoothstep(170., 30., uDist);
+    float keep = smoothstep(dis - .14, dis + .04, n);
+    float ember = (smoothstep(dis - .16, dis, n) - smoothstep(dis, dis + .14, n)) * step(.02, dis);
+    float a = t.a * keep * smoothstep(560., 330., uDist);
+    vec3 col = uTint * (1.15 + .9*t.a) + uSunCol * ember * 3.5;
+    gl_FragColor = vec4(col, a);
+  }`;
+function buildWords() {
+  WORDS.forEach((w, i) => {
+    const cv = document.createElement('canvas'); cv.width = 2048; cv.height = 512;
+    const g = cv.getContext('2d');
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff';
+    g.font = 'italic 400 330px "Instrument Serif", Georgia, serif';
+    g.shadowColor = 'rgba(255,255,255,.65)'; g.shadowBlur = 50;
+    g.fillText(w, 1024, 270); g.shadowBlur = 0; g.fillText(w, 1024, 270);
+    const tex = new THREE.CanvasTexture(cv); tex.anisotropy = 4;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(66, 16.5), new THREE.ShaderMaterial({
+      uniforms: { uTex:{value:tex}, uDist:{value:999}, uTime:{value:0}, uTint:{value:tint}, uSunCol:{value:S.sun} },
+      transparent: true, depthWrite: false,
+      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+      fragmentShader: wordFrag,
+    }));
+    m.renderOrder = 2; m.frustumCulled = false; m.userData.z = -260 - i*WSPACE;
+    scene.add(m); words.push(m);
+  });
+}
+Promise.race([document.fonts.load('italic 330px "Instrument Serif"'), new Promise(r => setTimeout(r, 2500))]).then(buildWords);
+
+// ---------------------------------------------------------------- paper plane + lights
+const plane = new THREE.Group();
+{
+  const N = [0,0,-2.1], TL = [-1.45,.18,1.05], TR = [1.45,.18,1.05], C = [0,0,1.05], K = [0,-.5,1.05], Kn = [0,-.05,-1.6];
+  const v = [...N,...TL,...C, ...N,...C,...TR, ...Kn,...C,...K, ...Kn,...K,...C];
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.computeVertexNormals();
+  const mesh = new THREE.Mesh(g, new THREE.MeshStandardMaterial({ color: 0xf7f4ee, roughness: .55, side: THREE.DoubleSide, flatShading: true }));
+  const crease = new THREE.LineSegments(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([...N, ...C], 3)), new THREE.LineBasicMaterial({ color: 0xb9b4ad }));
+  plane.add(mesh, crease);
+}
+scene.add(plane);
+const sunLight = new THREE.DirectionalLight(0xffffff, 2.4); scene.add(sunLight, sunLight.target);
+const hemi = new THREE.HemisphereLight(0xffffff, 0x888888, 1.1); scene.add(hemi);
+
+// wingtip contrails: camera-facing ribbons in world space
+const TN = 40;
+function makeTrail() {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TN*2*3), 3).setUsage(THREE.DynamicDrawUsage));
+  g.setAttribute('aT', new THREE.BufferAttribute(new Float32Array(TN*2).map((_, i) => (i >> 1) / (TN - 1)), 1));
+  const idx = []; for (let i = 0; i < TN - 1; i++) { const a = i*2; idx.push(a, a+1, a+2, a+1, a+3, a+2); } g.setIndex(idx);
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({
+    uniforms: { uCol: { value: tint } }, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+    vertexShader: `attribute float aT; varying float vT, vNear; void main(){ vT = aT; vec4 mv = modelViewMatrix*vec4(position,1.); vNear = smoothstep(4., 11., -mv.z); gl_Position = projectionMatrix*mv; }`,
+    fragmentShader: `uniform vec3 uCol; varying float vT, vNear; void main(){ gl_FragColor = vec4(uCol*.4*pow(1.-vT, 2.)*vNear, 1.); }`,
+  }));
+  m.frustumCulled = false; m.renderOrder = 4; scene.add(m);
+  return { mesh: m, hist: [] };
+}
+const trails = [makeTrail(), makeTrail()];
+const tips = [new THREE.Vector3(-1.4, .18, 1.0), new THREE.Vector3(1.4, .18, 1.0)];
+const tmpA = new THREE.Vector3(), tmpB = new THREE.Vector3(), tmpC = new THREE.Vector3();
+function updateTrail(tr, tipLocal) {
+  tr.hist.unshift(plane.localToWorld(tmpA.copy(tipLocal)).clone());
+  if (tr.hist.length > TN) tr.hist.pop();
+  const P = tr.mesh.geometry.attributes.position.array, h = tr.hist;
+  for (let i = 0; i < TN; i++) {
+    const p = h[Math.min(i, h.length - 1)], q = h[Math.min(i + 1, h.length - 1)];
+    tmpB.subVectors(p, q); if (tmpB.lengthSq() < 1e-6) tmpB.set(0, 0, 1);
+    tmpC.subVectors(camera.position, p).cross(tmpB).normalize().multiplyScalar(.035 * (1 - i/TN) + .006);
+    P[i*6] = p.x + tmpC.x; P[i*6+1] = p.y + tmpC.y; P[i*6+2] = p.z + tmpC.z;
+    P[i*6+3] = p.x - tmpC.x; P[i*6+4] = p.y - tmpC.y; P[i*6+5] = p.z - tmpC.z;
+  }
+  tr.mesh.geometry.attributes.position.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------- input
+const pointer = new THREE.Vector2(0, .15), pTarget = new THREE.Vector2(0, .15), pSmooth = new THREE.Vector2(0, .15);
+let lastMove = -10, holding = false, started = false;
+const cursorEl = document.getElementById('cursor');
+addEventListener('pointermove', e => {
+  pTarget.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight * 2 - 1));
+  lastMove = clock.elapsedTime;
+  cursorEl.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+});
+canvas.addEventListener('pointerdown', e => { holding = true; cursorEl.classList.add('down'); pTarget.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight * 2 - 1)); lastMove = clock.elapsedTime; });
+addEventListener('pointerup', () => { holding = false; cursorEl.classList.remove('down'); });
+addEventListener('keydown', e => { if (e.code === 'Space') holding = true; const n = '12345'.indexOf(e.key); if (n >= 0) selectMode(['dawn','day','dusk','night','auto'][n]); });
+addEventListener('keyup', e => { if (e.code === 'Space') holding = false; });
+
+const intro = document.getElementById('intro');
+intro.addEventListener('pointerdown', () => { if (started) return; started = true; intro.classList.add('gone'); startAudio(); });
+
+// modes
+let mode = 'auto', autoIdx = 0, autoNext = 7;
+const pills = [...document.querySelectorAll('.pill')];
+function selectMode(m) {
+  mode = m;
+  pills.forEach(p => p.classList.toggle('active', p.dataset.mode === m));
+  if (m !== 'auto') setTarget(m); else { autoNext = clock.elapsedTime + 8; }
+}
+pills.forEach(p => p.addEventListener('click', () => selectMode(p.dataset.mode)));
+
+// ---------------------------------------------------------------- wind audio
+let audio = null, soundOn = false;
+const sndBtn = document.getElementById('snd');
+function startAudio() {
+  if (audio) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const buf = ctx.createBuffer(1, ctx.sampleRate * 3, ctx.sampleRate), d = buf.getChannelData(0);
+    let last = 0; for (let i = 0; i < d.length; i++) { last = (last + .02 * (Math.random()*2 - 1)) / 1.02; d[i] = last * 3.5; }
+    const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = .6; bp.frequency.value = 420;
+    const gain = ctx.createGain(); gain.gain.value = 0;
+    src.connect(bp).connect(gain).connect(ctx.destination); src.start();
+    audio = { ctx, bp, gain }; soundOn = true; sndBtn.textContent = 'Sound on';
+  } catch (e) { /* audio unavailable */ }
+}
+sndBtn.addEventListener('click', () => {
+  if (!audio) { startAudio(); return; }
+  soundOn = !soundOn; sndBtn.textContent = soundOn ? 'Sound on' : 'Sound off';
+  if (soundOn) audio.ctx.resume();
+});
+
+// ---------------------------------------------------------------- loop
+const clock = new THREE.Clock();
+let camX = 0, camY = 12, camZ = 0, speed = 38, roll = 0, alt = 30000;
+const planePos = new THREE.Vector3(), prevPlane = new THREE.Vector3(), lookAt = new THREE.Vector3(), sv = new THREE.Vector3();
+const altEl = document.getElementById('alt');
+let hudT = 0, perfAcc = 0, perfN = 0, curPR = PR;
+const lerpK = (rate, dt) => 1 - Math.exp(-rate * dt);
+
+function frame() {
+  const dt = THREE.MathUtils.clamp(clock.getDelta(), 1/240, 1/20), t = clock.elapsedTime;
+
+  // autopilot drift when idle — keeps the loop alive forever
+  if (t - lastMove > 4) pTarget.set(Math.sin(t*.23)*.55 + Math.sin(t*.07)*.2, .1 + Math.sin(t*.31)*.45);
+  pointer.lerp(pTarget, lerpK(8, dt));
+  pSmooth.lerp(pTarget, lerpK(1.6, dt));
+
+  // time of day
+  if (mode === 'auto' && t > autoNext) { autoIdx = (autoIdx + 1) % 4; setTarget(ORDER[autoIdx]); autoNext = t + 10; }
+  const k = lerpK(mode === 'auto' ? .55 : 1.8, dt);
+  for (const c of COLOR_KEYS) S[c].lerp(target[c], k);
+  for (const n of NUM_KEYS) S[n] += (target[n] - S[n]) * k;
+  const el = THREE.MathUtils.degToRad(S.el), az = THREE.MathUtils.degToRad(S.az);
+  sunDir.set(Math.sin(az)*Math.cos(el), Math.sin(el), -Math.cos(az)*Math.cos(el));
+  below.copy(S.shadow).lerp(S.fog, .5);
+  cirrus.copy(S.lit).lerp(S.sun, .35);
+  tint.copy(S.lit).lerp(new THREE.Color(1,1,1), .55);
+  birdCol.copy(S.shadow).multiplyScalar(.35);
+  renderer.toneMappingExposure = S.exposure;
+
+  // flight
+  const targetSpeed = holding ? 115 : 38;
+  speed += (targetSpeed - speed) * lerpK(holding ? 1.4 : .9, dt);
+  camZ -= speed * dt;
+  const pcx = camX;
+  camX += (pSmooth.x * 34 - camX) * lerpK(1.2, dt);
+  camY += ((12 + pSmooth.y * 9 + (holding ? 3 : 0)) - camY) * lerpK(1.4, dt);
+  const vx = (camX - pcx) / dt;
+  roll += (-vx * .012 - roll) * lerpK(3, dt);
+  camera.position.set(camX, camY + Math.sin(t*1.3)*.15, camZ);
+  lookAt.set(camX + pSmooth.x*6, camY + 1.5 + pSmooth.y*2, camZ - 60);
+  camera.lookAt(lookAt);
+  camera.rotateZ(roll);
+  camera.fov += ((holding ? 74 : 62) - camera.fov) * lerpK(2, dt);
+  camera.updateProjectionMatrix();
+  camera.updateMatrixWorld();
+  sky.position.copy(camera.position);
+
+  // inside the cloud layer → thicker fog for immersion
+  const inside = THREE.MathUtils.smoothstep(9.5 - camY, 0, 6);
+  cloudU.uFogNear.value = THREE.MathUtils.lerp(120, 20, inside);
+  cloudU.uFogFar.value = THREE.MathUtils.lerp(720, 330, inside);
+
+  // plane
+  prevPlane.copy(planePos);
+  tmpA.set(pointer.x * 7.5, pointer.y * 3.2 - 1.4, -13).applyQuaternion(camera.quaternion).add(camera.position);
+  planePos.lerp(tmpA, lerpK(6, dt));
+  if (prevPlane.lengthSq() === 0) prevPlane.copy(planePos);
+  plane.position.copy(planePos);
+  const lx = (pointer.x - pSmooth.x), ly = (pointer.y - pSmooth.y);
+  plane.rotation.set(ly * .9 + Math.sin(t*1.7)*.03, -lx * .5, -lx * 1.6 + Math.sin(t*1.1)*.05 + roll*1.5, 'YXZ');
+  trails.forEach((tr, i) => updateTrail(tr, tips[i]));
+
+  // lights
+  sunLight.color.copy(S.sun); sunLight.position.copy(planePos).addScaledVector(sunDir, 50); sunLight.target.position.copy(planePos);
+  hemi.color.copy(S.mid); hemi.groundColor.copy(S.lit).multiplyScalar(.7);
+
+  // clouds
+  updateClouds(camX, camZ);
+  cloudU.uTime.value = t;
+  cloudU.uAspect.value = camera.aspect;
+  cloudU.uPointer.value.copy(pointer);
+  cloudU.uPart.value += ((holding ? 1.25 : .85) - cloudU.uPart.value) * lerpK(3, dt);
+  sv.copy(sunDir).transformDirection(camera.matrixWorldInverse);
+  cloudU.uSunScr.value.set(sv.x, sv.y).normalize();
+  cloudU.uRim.value = (.35 + .65 * Math.max(-sv.z, 0)) * (1 - S.stars * .5);
+
+  // birds, lanterns, sky
+  updateBirds(camX, camZ, t);
+  birdU.uTime.value = t; birdU.uBirds.value = S.birds;
+  lanU.uTime.value = t; lanU.uCamX.value = camX; lanU.uCamZ.value = camZ; lanU.uAmt.value = S.lanterns;
+  skyU.uTime.value = t; skyU.uCamZ.value = camZ; skyU.uStars.value = S.stars; skyU.uAurora.value = S.aurora;
+
+  // words: fly through them, they dissolve into embers
+  for (const m of words) {
+    const rel = wrap(camZ - m.userData.z, WL), z = camZ + AHEAD - rel;
+    m.position.set(camX * .55, 15.5, z);
+    m.material.uniforms.uDist.value = rel - AHEAD;
+    m.material.uniforms.uTime.value = t;
+    m.visible = rel > AHEAD;
+  }
+
+  bloom.strength = .45 + S.lanterns * .25 + (speed - 38) / 77 * .25;
+
+  // audio
+  if (audio) {
+    const g = soundOn ? .05 + (speed - 38) / 77 * .09 : 0;
+    audio.gain.gain.setTargetAtTime(g, audio.ctx.currentTime, .3);
+    audio.bp.frequency.setTargetAtTime(320 + speed * 5 + Math.sin(t*.4)*120, audio.ctx.currentTime, .3);
+  }
+
+  // altimeter climbs forever
+  alt += speed * dt * 3.2;
+  if ((hudT += dt) > .08) { hudT = 0; altEl.innerHTML = `${Math.floor(alt).toLocaleString('en-US')}<i>ft</i>`; }
+
+  // adaptive quality: step resolution down if the GPU can't hold ~40fps
+  perfAcc += dt; perfN++;
+  if (perfAcc > 2.5) {
+    const avg = perfAcc / perfN; perfAcc = 0; perfN = 0;
+    if (avg > 1/40 && curPR > .75 && !document.hidden) { curPR = Math.max(.75, curPR - .25); renderer.setPixelRatio(curPR); composer.setPixelRatio(curPR); composer.setSize(innerWidth, innerHeight); }
+  }
+
+  composer.render();
+  requestAnimationFrame(frame);
+}
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight);
+  lanU.uPR.value = curPR * innerHeight / 900;
+});
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
