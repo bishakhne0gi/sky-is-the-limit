@@ -1,5 +1,7 @@
 # Solo Flight (Plan 1 of 2) Implementation Plan
 
+> **Superseded (2026-10-09):** the breath/bands/echoes design was dropped in favour of the v1 flight plus the ritual. See the revised spec. This plan is kept as a record of what was built first.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the v1 single-file piece into a deployable Next.js app that delivers the full single-player journey: the ritual, breath-driven flight through five altitude bands, new dawns, folds, story lines, seed echoes, and generative audio.
