@@ -1,8 +1,8 @@
 'use client';
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { KINDS, MAX_DT } from '@sitl/core';
+import { KINDS, MAX_DT } from '@/lib/constants';
 import { live } from '@/flight/live';
 import { useApp } from '@/state/store';
 import { livePalette as lp } from '../livePalette';
@@ -42,6 +42,7 @@ export function PlayerPlane() {
   const glowMat = useMemo(() => new THREE.SpriteMaterial({
     map: glowTexture(), color: new THREE.Color(KINDS[kind]), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true,
   }), [kind]);
+  useEffect(() => () => { material.dispose(); glowMat.dispose(); }, [material, glowMat]);
   const trails = useMemo(() => [makeTrail(), makeTrail()], []);
   const tmp = useMemo(() => ({ target: new THREE.Vector3(), a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3() }), []);
 
@@ -54,22 +55,25 @@ export function PlayerPlane() {
     const flying = phase === 'launching' || phase === 'flying';
     g.visible = flying;
     trails.forEach((tr) => { tr.mesh.visible = flying; });
-    if (!flying) { trails.forEach((tr) => { tr.hist.length = 0; }); return; }
+    if (!flying) {
+      // Forget the last position so the next launch starts at the plane's target, not swooping in.
+      g.position.set(0, 0, 0);
+      trails.forEach((tr) => { tr.hist.length = 0; });
+      return;
+    }
 
     tmp.target.set(live.pointer.x * 7.5, live.pointer.y * 3.2 - 1.4, -13).applyQuaternion(camera.quaternion).add(camera.position);
     if (g.position.lengthSq() === 0) g.position.copy(tmp.target);
     g.position.lerp(tmp.target, 1 - Math.exp(-6 * dt));
     const lx = live.pointer.x - live.pointerSlow.x, ly = live.pointer.y - live.pointerSlow.y;
-    const flutter = live.flutter ? Math.sin(t * 38) * 0.12 : 0;
-    g.rotation.set(ly * 0.9 + Math.sin(t * 1.7) * 0.03 + flutter, -lx * 0.5, -lx * 1.6 + Math.sin(t * 1.1) * 0.05 + flutter, 'YXZ');
+    g.rotation.set(ly * 0.9 + Math.sin(t * 1.7) * 0.03, -lx * 0.5, -lx * 1.6 + Math.sin(t * 1.1) * 0.05, 'YXZ');
     g.updateMatrixWorld();
     live.plane.copy(g.position);
 
-    material.emissiveIntensity = 0.15 + live.steadiness * 0.6 + (live.inhaling ? 0.2 : 0);
+    material.emissiveIntensity = 0.45 + (live.holding ? 0.25 : 0);
     if (glow.current) {
-      const s = 3 + live.steadiness * 4 + (live.inhaling ? 1.5 : 0);
-      glow.current.scale.setScalar(s);
-      glowMat.opacity = 0.3 + live.steadiness * 0.4;
+      glow.current.scale.setScalar(5 + (live.holding ? 1.5 : 0) + Math.sin(t * 1.4) * 0.3);
+      glowMat.opacity = 0.55;
     }
 
     trails.forEach((tr, i) => {

@@ -2,7 +2,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { bandWeight } from '@sitl/core';
 import { live } from '@/flight/live';
 import { createRng } from '@/lib/rng';
 
@@ -46,7 +45,7 @@ export function Rain() {
     const u = material.uniforms;
     u.uTime!.value = state.clock.elapsedTime;
     (u.uCam!.value as THREE.Vector3).set(live.camera.x, live.camera.y, live.camera.z);
-    u.uAmt!.value = bandWeight(live.loopAlt, 0) + bandWeight(live.loopAlt, 1) * 0.3;
+    u.uAmt!.value = 1 - live.skyWeight;
   });
   return <lineSegments geometry={geometry} material={material} frustumCulled={false} renderOrder={3} />;
 }

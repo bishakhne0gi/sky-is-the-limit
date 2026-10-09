@@ -1,19 +1,21 @@
 import { live } from './live';
-import type { BreathInput } from './breathInput';
+import type { HoldInput } from './holdInput';
 
-/** Breath press on the canvas; steering from pointer position; release on up/cancel/blur/hidden. */
-export function attachInput(el: HTMLElement, input: BreathInput): () => void {
+/** Hold on the canvas; steering from pointer position; release on up/cancel/blur/hidden. */
+export function attachInput(el: HTMLElement, input: HoldInput): () => void {
   const isUi = (e: Event) => e.target instanceof Element && e.target.closest('[data-ui]') !== null;
-  const isTyping = (e: Event) => e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+  const isControl = (e: Event) =>
+    e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLButtonElement;
   const steer = (e: PointerEvent) => {
     if (isUi(e)) return;
     live.pointerRaw.set((e.clientX / window.innerWidth) * 2 - 1, -((e.clientY / window.innerHeight) * 2 - 1));
+    live.lastMove = live.time;
   };
-  const down = (e: PointerEvent) => { steer(e); input.pointerDown(e.pointerId); };
+  const down = (e: PointerEvent) => { steer(e); input.pointerDown(e.pointerId, e.button); };
   const up = (e: PointerEvent) => input.pointerUp(e.pointerId);
   const cancel = (e: PointerEvent) => input.pointerCancel(e.pointerId);
   const keyDown = (e: KeyboardEvent) => {
-    if (e.code !== 'Space' || isTyping(e) || e.repeat) return;
+    if (e.code !== 'Space' || isControl(e) || e.repeat) return;
     e.preventDefault();
     input.keyDown(e.code);
   };

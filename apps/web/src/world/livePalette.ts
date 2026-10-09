@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Palette } from './palette';
+import type { Palette } from './timeOfDay';
 
 const WHITE = new THREE.Color(1, 1, 1);
 
@@ -9,10 +9,10 @@ export const livePalette = {
   lit: new THREE.Color(), shadow: new THREE.Color(), fog: new THREE.Color(),
   below: new THREE.Color(), cirrus: new THREE.Color(), tint: new THREE.Color(),
   sunDir: new THREE.Vector3(0, 0.2, -1).normalize(),
-  stars: 0, aurora: 0, fogNear: 120, fogFar: 700,
+  stars: 0, aurora: 0, lanterns: 0, birds: 0, fogNear: 120, fogFar: 700,
 };
 
-export function applyPalette(p: Palette, loop: number): void {
+export function applyPalette(p: Palette): void {
   const lp = livePalette;
   for (const k of ['top', 'mid', 'horizon', 'sun', 'lit', 'shadow', 'fog'] as const) lp[k].setRGB(p[k][0], p[k][1], p[k][2], THREE.SRGBColorSpace);
   const el = THREE.MathUtils.degToRad(p.sunEl), az = THREE.MathUtils.degToRad(p.sunAz);
@@ -21,7 +21,9 @@ export function applyPalette(p: Palette, loop: number): void {
   lp.cirrus.copy(lp.lit).lerp(lp.sun, 0.35);
   lp.tint.copy(lp.lit).lerp(WHITE, 0.55);
   lp.stars = p.stars;
-  lp.aurora = Math.max(p.aurora, loop >= 4 ? 0.25 : 0);
+  lp.aurora = p.aurora;
+  lp.lanterns = p.lanterns;
+  lp.birds = p.birds;
   lp.fogNear = p.fogNear;
   lp.fogFar = p.fogFar;
 }

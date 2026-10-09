@@ -12,39 +12,38 @@ const throwing: StorageLike = {
 };
 
 describe('loadProfile', () => {
+  it('uses the v2 key', () => {
+    expect(PROFILE_KEY).toBe('sitl.profile.v2');
+  });
   it('returns defaults with an id when storage is unavailable', () => {
     const p = loadProfile(null);
     expect(p.id).toMatch(/.{8,}/);
-    expect(p).toMatchObject({ lifetimeAlt: 0, loop: 0, unlockedFolds: ['dart'] });
+    expect(p.settings).toEqual({ timeOfDay: 'auto', muted: false, reducedMotion: null });
   });
   it('returns defaults when storage throws', () => {
     expect(() => loadProfile(throwing)).not.toThrow();
-    expect(loadProfile(throwing).lifetimeAlt).toBe(0);
   });
   it('returns defaults for corrupt JSON', () => {
-    expect(loadProfile(memStorage({ [PROFILE_KEY]: '{not json' })).lifetimeAlt).toBe(0);
+    expect(loadProfile(memStorage({ [PROFILE_KEY]: '{not json' })).settings.timeOfDay).toBe('auto');
   });
-  it('sanitises invalid fields and derives loop and folds from altitude', () => {
-    const raw = { id: 'abc12345', lifetimeAlt: 2.4, loop: 99, unlockedFolds: ['dart', 'bogus'], settings: { autoBreathe: 'yes', muted: true } };
+  it('sanitises invalid settings', () => {
+    const raw = { id: 'abc12345', settings: { timeOfDay: 'noon', muted: 'yes', reducedMotion: true } };
     const p = loadProfile(memStorage({ [PROFILE_KEY]: JSON.stringify(raw) }));
-    expect(p.id).toBe('abc12345');
-    expect(p.loop).toBe(2);
-    expect(p.unlockedFolds).toEqual(['dart', 'glider', 'crane']);
-    expect(p.settings).toEqual({ autoBreathe: false, reducedMotion: null, muted: true });
+    expect(p).toEqual({ id: 'abc12345', settings: { timeOfDay: 'auto', muted: false, reducedMotion: true } });
   });
-  it('rejects a negative or non-numeric altitude', () => {
-    const p = loadProfile(memStorage({ [PROFILE_KEY]: JSON.stringify({ id: 'abc12345', lifetimeAlt: 'high' }) }));
-    expect(p.lifetimeAlt).toBe(0);
+  it('keeps a valid time of day', () => {
+    const raw = { id: 'abc12345', settings: { timeOfDay: 'night' } };
+    expect(loadProfile(memStorage({ [PROFILE_KEY]: JSON.stringify(raw) })).settings.timeOfDay).toBe('night');
   });
 });
 
 describe('saveProfile', () => {
   it('writes only whitelisted fields (never words)', () => {
     const s = memStorage();
-    const p = { ...defaultProfile('abc12345'), lifetimeAlt: 1.5, loop: 1, words: 'secret' } as Profile & { words: string };
+    const p = { ...defaultProfile('abc12345'), words: 'secret' } as Profile & { words: string };
     saveProfile(s, p);
     const stored = JSON.parse(s.data[PROFILE_KEY]!);
-    expect(Object.keys(stored).sort()).toEqual(['id', 'lifetimeAlt', 'loop', 'settings', 'unlockedFolds']);
+    expect(Object.keys(stored).sort()).toEqual(['id', 'settings']);
     expect(JSON.stringify(stored)).not.toContain('secret');
   });
   it('does not throw when storage is full or missing', () => {

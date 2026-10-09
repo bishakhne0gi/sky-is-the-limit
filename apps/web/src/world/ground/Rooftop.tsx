@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import * as THREE from 'three';
 import { live } from '@/flight/live';
 import { useApp } from '@/state/store';
-import { cameraBaseY } from '../altitudeRig';
+import { ROOFTOP_Y } from '../launch';
 
 /** A dark rain-wet rooftop under the camera during the ritual. It stays put once the plane launches. */
 export function Rooftop() {
@@ -15,7 +15,7 @@ export function Rooftop() {
     if (!g) return;
     const phase = useApp.getState().phase;
     if (phase === 'ritual' || phase === 'loading') {
-      g.position.set(live.camera.x, cameraBaseY(0) - 6, live.camera.z - 16);
+      g.position.set(live.camera.x, ROOFTOP_Y - 6, live.camera.z - 16);
       anchored.current = true;
     }
     g.visible = anchored.current && phase !== 'flying';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as THREE from 'three';
-import { FOLDS } from '@sitl/core';
+import { FOLDS } from '@/lib/constants';
 import { foldGeometry } from '@/world/planes/foldGeometry';
 
 describe('foldGeometry', () => {

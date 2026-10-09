@@ -1,17 +1,18 @@
-import { bandIndexAt, type BandIndex } from '@sitl/core';
+import type { TimeOfDay } from '@/world/timeOfDay';
 
-/** Hz. Ground A-minor, Fog F-add9, Above Cmaj7, Quiet open D (sparse), Stars Emaj7. */
-export const CHORDS: number[][] = [
-  [110, 164.81, 220, 261.63],
-  [87.31, 130.81, 220, 329.63],
-  [130.81, 196, 329.63, 493.88],
-  [146.83, 220, 369.99],
-  [164.81, 246.94, 415.3, 622.25],
-];
-const CUTOFF = [500, 700, 1400, 1100, 1800];
-const GAIN = [0.16, 0.15, 0.18, 0.11, 0.15];
+export type PadKey = TimeOfDay | 'rooftop';
 
-export function padParamsAt(loopAlt: number): { band: BandIndex; chord: number[]; cutoff: number; gain: number } {
-  const band = bandIndexAt(loopAlt);
-  return { band, chord: CHORDS[band]!, cutoff: CUTOFF[band]!, gain: GAIN[band]! };
+/** Hz. Rooftop A-minor; dawn Fadd9; day Cmaj7; dusk Dmaj9 (open); night Emaj7. */
+export const CHORDS: Record<PadKey, number[]> = {
+  rooftop: [110, 164.81, 220, 261.63],
+  dawn: [87.31, 130.81, 220, 329.63],
+  day: [130.81, 196, 329.63, 493.88],
+  dusk: [146.83, 220, 369.99, 440],
+  night: [164.81, 246.94, 415.3, 622.25],
+};
+const CUTOFF: Record<PadKey, number> = { rooftop: 500, dawn: 900, day: 1400, dusk: 1000, night: 1700 };
+const GAIN: Record<PadKey, number> = { rooftop: 0.14, dawn: 0.15, day: 0.15, dusk: 0.14, night: 0.13 };
+
+export function padFor(key: PadKey): { chord: number[]; cutoff: number; gain: number } {
+  return { chord: CHORDS[key], cutoff: CUTOFF[key], gain: GAIN[key] };
 }

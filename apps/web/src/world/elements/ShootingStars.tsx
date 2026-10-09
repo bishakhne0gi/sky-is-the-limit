@@ -2,15 +2,15 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { bandWeight } from '@sitl/core';
 import { live } from '@/flight/live';
+import { livePalette as lp } from '../livePalette';
 import { ambientInterval } from './shootingStarTiming';
 
 const POOL = 6;
 const LIFE = 1.2;
 const queue: { from: THREE.Vector3; to: THREE.Vector3 }[] = [];
 
-/** Spawn a star that arcs from → to (world space). Used by Plan 2 for breath-sync moments. */
+/** Spawn a star that arcs from → to (world space). */
 export function queueShootingStar(from: THREE.Vector3, to: THREE.Vector3): void {
   queue.push({ from: from.clone(), to: to.clone() });
 }
@@ -34,7 +34,7 @@ export function ShootingStars() {
       s.from.copy(from); s.to.copy(to); s.born = t;
     };
     while (queue.length) { const q = queue.shift()!; spawn(q.from, q.to); }
-    const interval = ambientInterval(live.loop, bandWeight(live.loopAlt, 4));
+    const interval = ambientInterval(lp.stars * live.skyWeight);
     if (interval !== null && t > nextAt.current) {
       nextAt.current = t + interval * (0.6 + Math.random() * 0.8);
       const from = new THREE.Vector3(live.camera.x + (Math.random() - 0.5) * 400, live.camera.y + 90 + Math.random() * 90, live.camera.z - 500);

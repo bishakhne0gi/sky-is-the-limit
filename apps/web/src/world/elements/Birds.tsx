@@ -2,7 +2,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { bandWeight, elementsForLoop } from '@sitl/core';
 import { live } from '@/flight/live';
 import { AHEAD, L, W, wrap } from '../clouds/cloudField';
 import { livePalette as lp } from '../livePalette';
@@ -36,23 +35,21 @@ export function Birds() {
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
-    const weight = bandWeight(live.loopAlt, 2);
+    const weight = lp.birds * live.skyWeight;
     material.uniforms.uTime!.value = t;
     material.uniforms.uAmt!.value = weight;
     birdCol.copy(lp.shadow).multiplyScalar(0.35);
     const A = aPos.array as Float32Array;
-    const join = elementsForLoop(live.loop).birdsJoin;
     flocks.forEach((f, fi) => {
-      const formation = join && fi === 0;
       const rel = wrap(live.camera.z - (f.z - t * f.v), L);
-      const baseX = formation ? live.plane.x : live.camera.x + wrap(f.x - live.camera.x + W / 2, W) - W / 2;
-      const baseY = formation ? live.plane.y + 1.2 : live.camera.y + f.y;
-      const baseZ = formation ? live.plane.z + 2 : live.camera.z + AHEAD - rel;
+      const baseX = live.camera.x + wrap(f.x - live.camera.x + W / 2, W) - W / 2;
+      const baseY = f.y + 12;
+      const baseZ = live.camera.z + AHEAD - rel;
       for (let k = 0; k < PER; k++) {
         const i = fi * PER + k, side = k % 2 ? 1 : -1, rank = (k + 1) >> 1;
         A[i * 4] = baseX + side * rank * 2.1 + Math.sin(t * 0.7 + i) * 0.3;
         A[i * 4 + 1] = baseY + Math.sin(t * 0.9 + i * 1.7) * 0.4 - rank * 0.15;
-        A[i * 4 + 2] = !formation && rel < AHEAD + 4 ? 1e5 : baseZ + rank * 2.4;
+        A[i * 4 + 2] = rel < AHEAD + 4 ? 1e5 : baseZ + rank * 2.4;
         A[i * 4 + 3] = i / NB;
       }
     });

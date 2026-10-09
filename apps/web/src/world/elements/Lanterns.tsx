@@ -2,7 +2,7 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { bandWeight, elementsForLoop } from '@sitl/core';
+import { livePalette as lp } from '../livePalette';
 import { live } from '@/flight/live';
 import { AHEAD, L, W } from '../clouds/cloudField';
 
@@ -48,12 +48,10 @@ export function Lanterns() {
   }, []);
 
   useFrame((state) => {
-    const a = live.loopAlt;
-    const lower = elementsForLoop(live.loop).lanternsFromFog ? 0.6 * (bandWeight(a, 1) + bandWeight(a, 2) + bandWeight(a, 3)) : 0;
     const u = material.uniforms;
     u.uTime!.value = state.clock.elapsedTime;
     u.uCamX!.value = live.camera.x; u.uCamY!.value = live.camera.y; u.uCamZ!.value = live.camera.z;
-    u.uAmt!.value = Math.min(1, bandWeight(a, 4) + lower);
+    u.uAmt!.value = lp.lanterns * live.skyWeight;
     u.uPR!.value = state.gl.getPixelRatio() * state.size.height / 900;
   });
   return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={3} />;

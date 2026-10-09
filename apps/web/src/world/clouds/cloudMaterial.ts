@@ -55,7 +55,7 @@ export function updateCloudUniforms(mat: THREE.ShaderMaterial, camera: THREE.Per
   u.uTime!.value = t;
   u.uAspect!.value = camera.aspect;
   (u.uPointer!.value as THREE.Vector2).copy(live.pointer);
-  u.uPart!.value += ((live.inhaling ? 1.15 : 0.85) - u.uPart!.value) * 0.05;
+  u.uPart!.value += ((live.holding ? 1.25 : 0.85) - u.uPart!.value) * 0.05;
   sv.copy(lp.sunDir).transformDirection(camera.matrixWorldInverse);
   (u.uSunScr!.value as THREE.Vector2).set(sv.x, sv.y).normalize();
   u.uRim!.value = (0.35 + 0.65 * Math.max(-sv.z, 0)) * (1 - lp.stars * 0.5);

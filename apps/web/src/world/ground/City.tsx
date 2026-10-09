@@ -2,7 +2,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useMemo } from 'react';
 import * as THREE from 'three';
-import { bandWeight } from '@sitl/core';
 import { live } from '@/flight/live';
 import { createRng } from '@/lib/rng';
 
@@ -51,7 +50,7 @@ export function City() {
     u.uTime!.value = state.clock.elapsedTime;
     u.uCamX!.value = live.camera.x;
     u.uCamZ!.value = live.camera.z;
-    u.uAmt!.value = bandWeight(live.loopAlt, 0);
+    u.uAmt!.value = 1 - live.skyWeight;
     u.uPR!.value = state.gl.getPixelRatio() * state.size.height / 900;
   });
   return <points geometry={geometry} material={material} frustumCulled={false} renderOrder={0} />;

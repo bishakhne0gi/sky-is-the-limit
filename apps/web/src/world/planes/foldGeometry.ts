@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { Fold } from '@sitl/core';
+import type { Fold } from '@/lib/constants';
 
 type V = readonly [number, number, number];
 const tri = (...vs: V[]) => vs.flat();

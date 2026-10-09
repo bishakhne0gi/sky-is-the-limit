@@ -2,7 +2,6 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
-import { bandWeight } from '@sitl/core';
 import { live } from '@/flight/live';
 import { AHEAD, wrap } from '../clouds/cloudField';
 import { livePalette as lp } from '../livePalette';
@@ -31,9 +30,10 @@ export function Words() {
 
   useEffect(() => {
     let cancelled = false;
-    void document.fonts.ready.then(() => {
+    const family = getComputedStyle(document.documentElement).getPropertyValue('--font-serif').trim() || 'Georgia, serif';
+    // Load the face explicitly: fonts.ready can resolve before the serif has ever been requested.
+    void document.fonts.load(`italic 400 330px ${family}`).catch(() => undefined).then(() => {
       if (cancelled || !group.current) return;
-      const family = getComputedStyle(document.documentElement).getPropertyValue('--font-serif').trim() || 'Georgia, serif';
       meshes.current = WORDS.map((w, i) => {
         const cv = document.createElement('canvas');
         cv.width = 2048; cv.height = 512;
@@ -65,7 +65,7 @@ export function Words() {
   }, [geometry]);
 
   useFrame((state) => {
-    const weight = bandWeight(live.loopAlt, 2);
+    const weight = live.skyWeight;
     for (const m of meshes.current) {
       const rel = wrap(live.camera.z - (m.userData.z as number), WL);
       m.position.set(live.camera.x * 0.55, live.camera.y + 3.5, live.camera.z + AHEAD - rel);
