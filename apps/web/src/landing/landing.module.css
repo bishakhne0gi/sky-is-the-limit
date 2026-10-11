@@ -1,0 +1,70 @@
+.page { position: fixed; inset: 0; overflow: hidden; background: #ffffff; color: #1d2433; }
+
+/* The painting, sized to fit with its white-dissolving edges visible; cropped toward the sky on portrait screens. */
+.hero {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(100vw, calc(100dvh * 1.7768)); aspect-ratio: 1672 / 941;
+}
+.image { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transform-origin: 45% 40%; animation: drift 26s ease-in-out infinite alternate; }
+@keyframes drift { from { transform: scale(1); } to { transform: scale(1.035) translateY(-0.6%); } }
+
+.sun {
+  position: absolute; left: 93.7%; top: 67%; width: 34%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 244, 214, .9) 0%, rgba(255, 214, 150, .45) 18%, rgba(255, 190, 120, 0) 58%);
+  mix-blend-mode: screen; animation: glow 7s ease-in-out infinite; pointer-events: none;
+}
+@keyframes glow { 0%, 100% { opacity: .55; transform: translate(-50%, -50%) scale(1); } 50% { opacity: .95; transform: translate(-50%, -50%) scale(1.08); } }
+.rays {
+  position: absolute; left: 93.7%; top: 67%; width: 80%; aspect-ratio: 1; transform: translate(-50%, -50%);
+  background: repeating-conic-gradient(from 0deg, rgba(255, 236, 200, .16) 0deg 4deg, rgba(255, 236, 200, 0) 4deg 15deg);
+  -webkit-mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.5) 25%, transparent 60%); mask: radial-gradient(circle, #000 0%, rgba(0,0,0,.5) 25%, transparent 60%);
+  mix-blend-mode: screen; animation: turn 90s linear infinite; pointer-events: none;
+}
+@keyframes turn { to { transform: translate(-50%, -50%) rotate(360deg); } }
+.spark {
+  position: absolute; border-radius: 50%; background: #fffbe9; box-shadow: 0 0 8px 2px rgba(255, 240, 200, .8);
+  opacity: 0; animation: rise 6s ease-in-out infinite; pointer-events: none;
+}
+@keyframes rise { 0% { opacity: 0; transform: translateY(14px) scale(.6); } 30% { opacity: .9; } 100% { opacity: 0; transform: translateY(-46px) scale(1); } }
+
+.paper { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.plane { filter: drop-shadow(0 8px 10px rgba(30, 70, 140, .22)); }
+.trail { stroke: #ffffff; stroke-width: 2.4; stroke-dasharray: 9 9; stroke-linecap: round; filter: drop-shadow(0 0 3px rgba(255,255,255,.6)); }
+.handwriting { font: italic 400 21px var(--font-serif), serif; fill: #2b3550; }
+
+.copy {
+  position: absolute; left: 50%; top: 11dvh; transform: translateX(-50%); z-index: 3;
+  width: min(92vw, 900px); text-align: center; display: grid; justify-items: center; gap: 16px;
+}
+.title {
+  font: italic 400 clamp(52px, 9.5vw, 148px)/0.95 var(--font-serif), serif; letter-spacing: -0.02em; color: #ffffff;
+  text-shadow: 0 2px 30px rgba(20, 70, 160, .35), 0 0 60px rgba(255, 255, 255, .35);
+}
+.title span { display: inline-block; opacity: 0; transform: translateY(18px); filter: blur(6px); animation: letter .9s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(.25s + var(--i) * .055s); }
+@keyframes letter { to { opacity: 1; transform: none; filter: blur(0); } }
+.lede {
+  max-width: 34ch; font: 500 clamp(14px, 1.3vw, 17px)/1.55 var(--font-sans); color: rgba(255, 255, 255, .95);
+  text-shadow: 0 1px 14px rgba(20, 70, 160, .45); opacity: 0; animation: fade 1.2s ease 1.3s forwards;
+}
+.begin {
+  appearance: none; border: 0; cursor: pointer; padding: 14px 34px; border-radius: 999px; background: #ffffff; color: #1d2433;
+  font: 600 12px/1 var(--font-sans); letter-spacing: .28em; text-transform: uppercase;
+  box-shadow: 0 10px 30px rgba(20, 70, 160, .25), 0 0 0 6px rgba(255, 255, 255, .25);
+  opacity: 0; animation: fade 1.2s ease 1.7s forwards; transition: transform .25s, box-shadow .25s;
+}
+.begin:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(20, 70, 160, .3), 0 0 0 8px rgba(255, 255, 255, .3); }
+.begin:disabled { cursor: default; }
+@keyframes fade { to { opacity: 1; } }
+
+.credit { position: absolute; left: 0; right: 0; bottom: max(14px, env(safe-area-inset-bottom)); z-index: 3; text-align: center; font: 400 11px/1 var(--font-sans); letter-spacing: .08em; color: rgba(29, 36, 51, .5); }
+.credit a { color: inherit; }
+
+/* Portrait: fill the height and keep the sky and the papers in view. */
+@media (max-aspect-ratio: 1/1) {
+  .hero { height: 100dvh; width: auto; top: 0; left: calc(50vw - 0.36 * 100dvh * 1.7768); transform: none; }
+  .copy { top: 9dvh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .image, .sun, .rays, .spark { animation: none; }
+  .title span, .lede, .begin { animation-duration: .01s; animation-delay: 0s; }
+}
